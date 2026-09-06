@@ -4,6 +4,8 @@ import logging
 
 from odoo import http
 from odoo.http import request, Response
+from odoo.tools import file_open
+from odoo.addons.point_of_sale.controllers.main import PosController
 
 _logger = logging.getLogger(__name__)
 
@@ -189,5 +191,21 @@ class QZTrayController(http.Controller):
         except Exception as e:
             _logger.error(f"Error reading private key: {e}", exc_info=True)
             return Response(f"Error reading private key: {e}", status=500, content_type='text/plain')
+
+
+class QZPosController(PosController):
+    """
+    Override PosController to serve the robust service worker from odoo_qz_print,
+    preventing Service Worker Promise rejection errors on network issues.
+    """
+
+    @http.route('/pos/service-worker.js', type='http', auth='user')
+    def pos_web_service_worker(self):
+        return super().pos_web_service_worker()
+
+    def _get_pos_service_worker(self):
+        with file_open('odoo_qz_print/static/src/service_worker.js') as f:
+            return f.read()
+
 
 
