@@ -5,6 +5,9 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
 export class QzPrintIcon extends Component {
+  static template = "odoo_qz_print.QzPrintIcon";
+  static props = {};
+
   setup() {
     this.qz = useService("qz_tray");
   }
@@ -24,23 +27,23 @@ export class QzPrintIcon extends Component {
 
       // 3. Define simple HTML content to print
       const htmlContent = `
-                <html>
-                <body>
-                    <h1>Odoo 19 QZ Test</h1>
-                    <p>If you can read this, QZ Tray is working!</p>
-                    <hr/>
-                    <p>Time: ${new Date().toLocaleString()}</p>
-                </body>
-                </html>
-            `;
+        <html>
+        <body>
+            <h1>Odoo 20 QZ Test</h1>
+            <p>If you can read this, QZ Tray is working!</p>
+            <hr/>
+            <p>Time: ${new Date().toLocaleString()}</p>
+        </body>
+        </html>
+      `;
 
       // 4. Send to printer
       await this.qz.print(defaultPrinter, htmlContent, "pixel");
-    } catch (error) {}
+    } catch (error) {
+      console.error("[QZ] Test print failed:", error);
+    }
   }
 }
-
-QzPrintIcon.template = "odoo_qz_print.QzPrintIcon";
 
 export const systrayItem = {
   Component: QzPrintIcon,

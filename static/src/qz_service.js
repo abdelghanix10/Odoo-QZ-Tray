@@ -8,6 +8,12 @@ const PRINTER_TIMEOUT_MS = 5000;
 const HEARTBEAT_INTERVAL_MS = 60000;
 const LOG_PREFIX = "[QZ]";
 
+let qzServiceInstance = null;
+
+export function getQzService() {
+  return qzServiceInstance;
+}
+
 function ts() {
   return new Date().toISOString().substring(11, 23);
 }
@@ -189,7 +195,6 @@ function modPow(base, exp, mod) {
 
 function rsaSignPkcs1Sha1(dataBytes, rsaKey) {
   const digest = sha1Bytes(dataBytes);
-  // ASN.1 DER DigestInfo header for SHA-1
   const digestInfoPrefix = new Uint8Array([
     0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x0e, 0x03, 0x02, 0x1a, 0x05,
     0x00, 0x04, 0x14,
@@ -222,16 +227,19 @@ function rsaSignPkcs1Sha1(dataBytes, rsaKey) {
 
 export const qzTrayService = {
   async start(env) {
-    // --- State ---
+    if (qzServiceInstance) {
+      return qzServiceInstance;
+    }
+
     let securityConfigured = false;
     let cachedCert = null;
     let cachedPrivateKey = null;
     let importedKey = null;
     let fallbackRsaKey = null;
     let cachedPrinterName = null;
-    let reconnectPromise = null; // coalesce concurrent reconnects
+    let reconnectPromise = null;
     let heartbeatTimer = null;
-    let printingInProgress = false; // guard heartbeat during print
+    let printingInProgress = false;
     let destroyed = false;
 
     const hasWebCryptoSubtle = () =>
@@ -294,7 +302,7 @@ export const qzTrayService = {
             cachedPrivateKey = await keyRes.text();
           }
         } catch {
-          // Ignore network error; caller will handle null
+          // Handled by caller
         }
       }
       return cachedPrivateKey;
@@ -325,7 +333,6 @@ export const qzTrayService = {
             ["sign"],
           );
         } else {
-          // Insecure context (HTTP over LAN IP): use pure-JS RSA key
           fallbackRsaKey = parsePkcs8RsaKey(bytes);
         }
         return { importedKey, fallbackRsaKey };
@@ -597,7 +604,7 @@ export const qzTrayService = {
         {
           type: type,
           format: type === "pixel" ? "html" : "command",
-          flavor: type === "pixel" ? "plain" : "plain",
+          flavor: "plain",
           data: data,
         },
       ];
@@ -698,13 +705,6 @@ export const qzTrayService = {
       }, HEARTBEAT_INTERVAL_MS);
     };
 
-    const stopHeartbeat = () => {
-      if (heartbeatTimer) {
-        clearInterval(heartbeatTimer);
-        heartbeatTimer = null;
-      }
-    };
-
     // --- WebSocket close callback ---
 
     const registerCloseCallback = () => {
@@ -757,14 +757,14 @@ export const qzTrayService = {
     registerBrowserLifecycle();
     startHeartbeat();
 
-    // --- Public API ---
-
-    return {
+    qzServiceInstance = {
       connect,
       print,
       getDefaultPrinter,
       getQZ,
     };
+
+    return qzServiceInstance;
   },
 };
 

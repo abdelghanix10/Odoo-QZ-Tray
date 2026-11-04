@@ -3,6 +3,7 @@
 import { PosStore } from "@point_of_sale/app/services/pos_store";
 import { patch } from "@web/core/utils/patch";
 import { OrderReceipt } from "@point_of_sale/app/screens/receipt_screen/receipt/order_receipt";
+import { getQzService } from "./qz_service";
 
 patch(PosStore.prototype, {
   async printReceipt({
@@ -10,15 +11,15 @@ patch(PosStore.prototype, {
     order = this.getOrder(),
     printBillActionTriggered = false,
   } = {}) {
-    const qzService = this.env.services.qz_tray;
+    const qzService =
+      this.env?.services?.qz_tray || this.qz_tray || getQzService();
     const printMethod = this.config?.receipt_print_method || "chrome";
 
     if (qzService && printMethod === "qz_tray") {
-      // Printer resolution goes through qzService — handles caching, connection, retry
       const printerName = await qzService.getDefaultPrinter();
 
-      // Render receipt HTML
-      const renderer = this.env.services.renderer;
+      // Resolve renderer in both OWL 3 (this.renderer) and OWL 2 compat (this.env.services.renderer)
+      const renderer = this.renderer || this.env?.services?.renderer;
       const receiptHtml = await renderer.toHtml(
         OrderReceipt,
         {
@@ -49,7 +50,7 @@ patch(PosStore.prototype, {
 
       await qzService.print(printerName, htmlContent, "pixel", {});
 
-      // Update print count (same logic as Odoo's original)
+      // Update print count
       if (!printBillActionTriggered) {
         const count = order.nb_print ? order.nb_print + 1 : 1;
         if (order.isSynced) {

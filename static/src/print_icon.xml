@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="odoo_qz_print.QzPrintIcon">
-        <div class="o_nav_entry" t-on-click="onClick" style="cursor: pointer; display: flex; align-items: center; padding: 0 10px;">
-            <i class="fa fa-print fa-lg" title="Test QZ Print" style="color: white;"></i>
+        <div class="o_nav_entry" t-on-click="this.onClick" style="cursor: pointer; display: flex; align-items: center; padding: 0 10px;">
+            <i class="oi oi-fw" data-icon="print" title="Test QZ Print" role="img" aria-label="Test QZ Print" style="color: white; font-size: 1.25rem;"/>
         </div>
     </t>
 </templates>

@@ -1,6 +1,6 @@
 {
-    'name': 'Odoo 19 QZ Tray Integration',
-    'version': '1.0',
+    'name': 'Odoo 20 QZ Tray Integration',
+    'version': '20.0.1.0.0',
     'category': 'Hardware/Printing',
     'depends': ['web', 'point_of_sale'],
     'assets': {
@@ -11,7 +11,7 @@
             'odoo_qz_print/static/src/print_icon.js',
             'odoo_qz_print/static/src/print_icon.xml',
         ],
-        # Load QZ library in POS - CORRECT bundle name for Odoo 19
+        # Load QZ library in POS
         'point_of_sale._assets_pos': [
             'odoo_qz_print/static/lib/qz-tray.js',
             'odoo_qz_print/static/src/qz_service.js',
